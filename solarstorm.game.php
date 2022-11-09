@@ -1793,9 +1793,9 @@ class SolarStorm extends Table {
 	/**
 	 * Leave one card in the damage deck, so next one should be hull damage
 	 */
-	public function debugEmptyDamageDeck() {
+	public function debugEmptyDamageDeck($leave) {
 		$cnt = $this->damageCards->countCardInLocation('deck');
-		$this->damageCards->pickCardsForLocation($cnt - 1, 'deck', 'discard');
+		$this->damageCards->pickCardsForLocation($cnt - 1 - $leave, 'deck', 'discard');
 	}
 
 	/**

@@ -857,7 +857,7 @@ define(['dojo', 'dojo/_base/declare', 'ebg/core/gamegui', 'ebg/counter', 'ebg/st
         });
         this.reorderDamageDeck.setSelectionMode(1);
         handles.push(this.connectStockCardClick(this.reorderDamageDeck, card => {
-          if (card.type === 'hull' && selectedCards.length === 0) {
+          if (card.type === 'hull' && selectedCards.length < options.count - 1) {
             gameui.showMessage(_('Hull breach must be the last damage card'), 'error');
             return;
           }
