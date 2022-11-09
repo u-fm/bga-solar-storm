@@ -1201,7 +1201,7 @@ define(['dojo', 'dojo/_base/declare', 'ebg/core/gamegui', 'ebg/counter', 'ebg/st
           cancel: true
         });
         this.gamedatas.gamestate.descriptionmyturn = dojo.string.substitute(_('Repair Centre: You must choose a resource to repair: ${room}'), {
-          room: room.name
+          room: _(room.name)
         });
         this.updatePageTitle();
         this.removeActionButtons();
@@ -1589,9 +1589,9 @@ class SSRoom {
     this.gameObject = gameObject;
     this.id = data.id;
     this.slug = data.slug;
-    this.name = _(data.name);
+    this.name = data.name;
     this.color = data.color;
-    this.description = _(data.description);
+    this.description = data.description;
     this.position = data.position;
     this.assertEl();
     this.setDamage(data.damage);
@@ -1614,7 +1614,7 @@ class SSRoom {
       class: "ss-room ss-room--pos-" + this.position + " ss-room-card--" + this.id + " ss-room--" + this.id
     }, roomsEl);
     const fullText = [];
-    fullText.push("<span class=\"ss-room-name\" data-room=\"" + this.slug + "\" style=\"color: " + this.color + "\">" + this.name + "</span>\n-----\n");
+    fullText.push("<span class=\"ss-room-name\" data-room=\"" + this.slug + "\" style=\"color: " + this.color + "\">" + _(this.name) + "</span>\n-----\n");
 
     if (this.slug !== 'energy-core') {
       // prettier-ignore
@@ -1627,7 +1627,7 @@ class SSRoom {
       fullText.push(_('**Room action** (when the room is not damaged) :') + '\n');
     }
 
-    fullText.push(this.description);
+    fullText.push(_(this.description));
     this.gameObject.addTooltipMarkdown(el, fullText.join(''), {}, 1000);
 
     if (this.id !== 0) {

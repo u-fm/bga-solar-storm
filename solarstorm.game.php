@@ -502,6 +502,10 @@ class SolarStorm extends Table {
 		$result = [];
 
 		$result['rooms'] = $this->rooms->toArray();
+        foreach ($result['rooms'] as $roomKey => $roomData) {
+            $result['rooms'][$roomKey]['name'] = self::_($this->roomInfos[$roomKey]['name']);
+            $result['rooms'][$roomKey]['description'] = self::_($this->roomInfos[$roomKey]['description']);
+        }
 		$result['ssPlayers'] = $this->ssPlayers->toArray();
 		$result['resourceCardsNbrInitial'] = (int) self::getGameStateValue('initialResourceDeckSize');
 		$result['resourceCardsNbr'] = $this->getNbrResourceCardsInDeck();
