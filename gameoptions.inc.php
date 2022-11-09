@@ -73,3 +73,22 @@ $game_options = [
 		],
 	],
 ];
+
+$game_preferences = [
+    100 => [
+        'name' => totranslate('Display dice roll result window'),
+        'needReload' => true, // after user changes this preference game interface would auto-reload
+        'values' => [
+            1 => ['name' => totranslate('Yes')],
+            2 => ['name' => totranslate('No')],
+        ],
+    ],
+    101 => [
+        'name' => totranslate('Overlap cards in hand'),
+        'needReload' => true, // after user changes this preference game interface would auto-reload
+        'values' => [
+            1 => ['name' => totranslate('Yes')],
+            2 => ['name' => totranslate('No')],
+        ],
+    ],
+];

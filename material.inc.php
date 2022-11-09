@@ -35,35 +35,35 @@ $this->resourceTypes = [
 	'data' => [
 		'id' => 'data',
 		'name' => clienttranslate('Data'),
-		'nametr' => self::_('Data'),
+		'nametr' => clienttranslate('Data'),
 	],
 	'metal' => [
 		'id' => 'metal',
 		'name' => clienttranslate('Metal'),
-		'nametr' => self::_('Metal'),
+		'nametr' => clienttranslate('Metal'),
 	],
 	'nanobots' => [
 		'id' => 'nanobots',
 		'name' => clienttranslate('Nanobots'),
-		'nametr' => self::_('Nanobots'),
+		'nametr' => clienttranslate('Nanobots'),
 	],
 	'energy' => [
 		'id' => 'energy',
 		'name' => clienttranslate('Energy'),
-		'nametr' => self::_('Energy'),
+		'nametr' => clienttranslate('Energy'),
 	],
 	'universal' => [
 		'id' => 'universal',
 		'name' => clienttranslate('Universal'),
-		'nametr' => self::_('Universal'),
+		'nametr' => clienttranslate('Universal'),
 	],
 ];
 
 $this->roomInfos = [
 	0 => [
 		'slug' => 'energy-core',
-		'name' => self::_('Energy Core'),
-		'description' => self::_(
+		'name' => clienttranslate('Energy Core'),
+		'description' => clienttranslate(
 			"When all rooms have diverted power,\n get here and use 1 action to reactivate the Energy Core.\nThen all players win the game!"
 		),
 		'resources' => [],
@@ -72,56 +72,56 @@ $this->roomInfos = [
 	],
 	1 => [
 		'slug' => 'mess-hall',
-		'name' => self::_('Mess Hall'),
-		'description' => self::_('Give, take or exchange a resource card with another player.'),
+		'name' => clienttranslate('Mess Hall'),
+		'description' => clienttranslate('Give, take or exchange a resource card with another player.'),
 		'resources' => ['nanobots', 'energy', 'data'],
 		'divertResources' => ['data', 'data', 'energy'],
 		'color' => '#814438',
 	],
 	2 => [
 		'slug' => 'repair-centre',
-		'name' => self::_('Repair Centre'),
-		'description' => self::_("Repair a damaged room by one space on the Repair Track.\nDiscard the matching card."),
+		'name' => clienttranslate('Repair Centre'),
+		'description' => clienttranslate("Repair a damaged room by one space on the Repair Track.\nDiscard the matching card."),
 		'resources' => ['metal', 'energy', 'nanobots'],
 		'divertResources' => ['data', 'energy', 'nanobots'],
 		'color' => '#968B3C',
 	],
 	3 => [
 		'slug' => 'medical-bay',
-		'name' => self::_('Medical Bay'),
-		'description' => self::_('Take two actions tokens when starting in this room.'),
+		'name' => clienttranslate('Medical Bay'),
+		'description' => clienttranslate('Take two actions tokens when starting in this room.'),
 		'resources' => ['metal', 'nanobots', 'energy'],
 		'divertResources' => ['data', 'energy', 'energy'],
 		'color' => '#1F73AE',
 	],
 	4 => [
 		'slug' => 'engine-room',
-		'name' => self::_('Engine Room'),
-		'description' => self::_('Swap a card from your hand with one from the discard pile.'),
+		'name' => clienttranslate('Engine Room'),
+		'description' => clienttranslate('Swap a card from your hand with one from the discard pile.'),
 		'resources' => ['data', 'metal', 'nanobots'],
 		'divertResources' => ['metal', 'nanobots', 'nanobots'],
 		'color' => '#A06828',
 	],
 	5 => [
 		'slug' => 'crew-quarters',
-		'name' => self::_('Crew Quarters'),
-		'description' => self::_("Move a player's meeple to a room that has another meeple in it."),
+		'name' => clienttranslate('Crew Quarters'),
+		'description' => clienttranslate("Move a player's meeple to a room that has another meeple in it."),
 		'resources' => ['energy', 'data', 'metal'],
 		'divertResources' => ['metal', 'metal', 'nanobots'],
 		'color' => '#6F9F38',
 	],
 	6 => [
 		'slug' => 'cargo-hold',
-		'name' => self::_('Cargo Hold'),
-		'description' => self::_("Look at the next 5 resources cards.\nThen put them back in any order."),
+		'name' => clienttranslate('Cargo Hold'),
+		'description' => clienttranslate("Look at the next 5 resources cards.\nThen put them back in any order."),
 		'resources' => ['energy', 'metal', 'data'],
 		'divertResources' => ['data', 'metal', 'nanobots'],
 		'color' => '#2A7844',
 	],
 	7 => [
 		'slug' => 'armoury',
-		'name' => self::_('Armoury'),
-		'description' => self::_(
+		'name' => clienttranslate('Armoury'),
+		'description' => clienttranslate(
 			"Place 2 protection tokens on any rooms(s).\nThey are removed a the start of your next turn."
 		),
 		'resources' => ['data', 'nanobots', 'metal'],
@@ -130,8 +130,8 @@ $this->roomInfos = [
 	],
 	8 => [
 		'slug' => 'bridge',
-		'name' => self::_('Bridge'),
-		'description' => self::_('Look at the next 3 Damage cards and put them back in any order.'),
+		'name' => clienttranslate('Bridge'),
+		'description' => clienttranslate('Look at the next 3 Damage cards and put them back in any order.'),
 		'resources' => ['nanobots', 'data', 'energy'],
 		'divertResources' => ['data', 'metal', 'energy'],
 		'color' => '#7B191B',

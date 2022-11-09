@@ -98,7 +98,7 @@ define(['dojo', 'dojo/_base/declare', 'ebg/core/gamegui', 'ebg/counter', 'ebg/st
       playerIds.forEach(id => {
         id = parseInt(id, 10);
         const data = this.gamedatas.ssPlayers.find(_ => _.id === id);
-        const player = new SSPlayer(this, id, data.name, data.color, data.order, data.position, data.actionsTokens);
+        const player = new SSPlayer(this, id, data.name, data.color, data.order, data.position, data.actionsTokens, this.prefs[101].value);
         this.players.addPlayer(player);
       });
 
@@ -160,38 +160,6 @@ define(['dojo', 'dojo/_base/declare', 'ebg/core/gamegui', 'ebg/counter', 'ebg/st
       console.log('Entering state: ' + stateName, args); // Higlight active player
 
       this.players.highlightActive();
-
-      if (stateName === 'playerTurn') {
-        // Display for all players
-        let leftStr = dojo.string.substitute(_('${n} left'), {
-          n: args.args.actions
-        });
-        const player = this.players.getActive();
-
-        if (player.actionsTokens > 0 && args.args.canUseActionTokens) {
-          const tokens = _('token(s)');
-
-          leftStr += " <small> + " + player.actionsTokens + " " + tokens + "</small>";
-        }
-
-        this.gamedatas.gamestate.descriptionmyturn += " (" + leftStr + ")";
-        this.gamedatas.gamestate.description += " (" + leftStr + ")";
-        this.updatePageTitle();
-        return;
-      }
-
-      if (stateName === 'playerAskActionTokensPlay') {
-        // Display for all players
-        const player = this.players.getActive();
-        let leftStr = dojo.string.substitute(_('${n} left'), {
-          n: player.actionsTokens
-        });
-        this.gamedatas.gamestate.descriptionmyturn += " (" + leftStr + ")";
-        this.gamedatas.gamestate.description += " (" + leftStr + ")";
-        this.updatePageTitle();
-        return;
-      } // Now, only for active player
-
 
       if (!this.isCurrentPlayerActive()) {
         return;
@@ -363,7 +331,7 @@ define(['dojo', 'dojo/_base/declare', 'ebg/core/gamegui', 'ebg/counter', 'ebg/st
         return;
       }
 
-      const buttonId = 'button-' + action;
+      const buttonId = 'button-' + (action === 'share' ? 'shares' : action);
       const iconHtml = faIcon ? "<i class=\"fa fa-" + faIcon + "\"></i> " : '';
       this.addActionButton(buttonId, iconHtml + text, evt => {
         this.onPlayerChooseAction(evt, action);
@@ -416,7 +384,7 @@ define(['dojo', 'dojo/_base/declare', 'ebg/core/gamegui', 'ebg/counter', 'ebg/st
         const type = this.resourceTypes.find(r => r.id === id); // prettier-ignore
 
         this.addTooltipMarkdown(el, [_('Resource card of type: **${type}** ${detail}'), '\n----\n', _('Used to **repair** or **divert** power in the rooms.${newline}Maximum 6 cards in the player hand (at the end of turn).')].join(''), {
-          type: type.nametr,
+          type: _(type.nametr),
           detail: id === 'universal' ? _('(can be used as any other resource)') : ''
         }, 250);
         el.setAttribute('data-type', type.id);
@@ -884,12 +852,15 @@ define(['dojo', 'dojo/_base/declare', 'ebg/core/gamegui', 'ebg/counter', 'ebg/st
             }), 'error');
             return;
           }
-
           cleanAll();
           resolve(selectedCards);
         });
         this.reorderDamageDeck.setSelectionMode(1);
         handles.push(this.connectStockCardClick(this.reorderDamageDeck, card => {
+          if (card.type === 'hull' && selectedCards.length === 0) {
+            gameui.showMessage(_('Hull breach must be the last damage card'), 'error');
+            return;
+          }
           selectedCards.push(card);
           this.reorderDamageDeck.removeFromStockById(card.id);
         }));
@@ -948,6 +919,7 @@ define(['dojo', 'dojo/_base/declare', 'ebg/core/gamegui', 'ebg/counter', 'ebg/st
     })(),
 
     showDiceResult(result, message = null) {
+      if (this.prefs[100].value == 2) return;
       const diceEl = document.querySelector('.ss-dice-result-dialog__dice');
       diceEl.setAttribute('data-face', result);
       const diceMessageEl = document.querySelector('.ss-dice-result-dialog__message');
@@ -1152,7 +1124,7 @@ define(['dojo', 'dojo/_base/declare', 'ebg/core/gamegui', 'ebg/counter', 'ebg/st
 
     async doPlayerRoomCargoHold(cards) {
       const selectedCards = await this.waitForResourceCardOrderFromDialog(cards, {
-        title: _('Reorder the next resource cards.') + '<br/>' + 'The first ones you select will be on <b>top</b> of the deck.',
+        title: _('Reorder the next resource cards.') + '<br/>' + _('The first ones you select will be on <b>top</b> of the deck.'),
         cancel: false
       });
       await this.ajaxAction('putBackResourceCardsInDeck', {
@@ -1163,7 +1135,7 @@ define(['dojo', 'dojo/_base/declare', 'ebg/core/gamegui', 'ebg/counter', 'ebg/st
 
     async doPlayerRoomBridge(cards) {
       const selectedCards = await this.waitForDamageCardOrderFromDialog(cards, {
-        title: _('Reorder the next damage cards.') + '<br/>' + 'The first ones you select will be on <b>top</b> of the deck.',
+        title: _('Reorder the next damage cards.') + '<br/>' + _('The first ones you select will be on <b>top</b> of the deck.'),
         cancel: false
       });
       await this.ajaxAction('putBackDamageCardsInDeck', {
@@ -1482,7 +1454,7 @@ define(['dojo', 'dojo/_base/declare', 'ebg/core/gamegui', 'ebg/counter', 'ebg/st
             const type = this.resourceTypes.find(r => r.id === args.resourceType);
             args.resourceType = dojo.string.substitute('<span class="ss-resource-card-icon ss-resource-card-icon--small ss-resource-card-icon--${resourceType}"></span>${resourceName}', {
               resourceType: type.id,
-              resourceName: type.nametr
+              resourceName: _(type.nametr)
             });
           } // Representation of a resource card type (2)
 
@@ -1491,7 +1463,7 @@ define(['dojo', 'dojo/_base/declare', 'ebg/core/gamegui', 'ebg/counter', 'ebg/st
             const type = this.resourceTypes.find(r => r.id === args.resourceType2);
             args.resourceType2 = dojo.string.substitute('<span class="ss-resource-card-icon ss-resource-card-icon--small ss-resource-card-icon--${resourceType2}"></span>${resourceName}', {
               resourceType2: type.id,
-              resourceName: type.nametr
+              resourceName: _(type.nametr)
             });
           } // Representation of a many resource card types
 
@@ -1501,7 +1473,7 @@ define(['dojo', 'dojo/_base/declare', 'ebg/core/gamegui', 'ebg/counter', 'ebg/st
               const type = this.resourceTypes.find(r => r.id === resourceType);
               return dojo.string.substitute('<span class="ss-resource-card-icon ss-resource-card-icon--small ss-resource-card-icon--${resourceType}"></span>${resourceName}', {
                 resourceType: type.id,
-                resourceName: type.nametr
+                resourceName: _(type.nametr)
               });
             });
             args.resourceTypes = str.join(', ');
@@ -1511,7 +1483,7 @@ define(['dojo', 'dojo/_base/declare', 'ebg/core/gamegui', 'ebg/counter', 'ebg/st
           if (args.roomName !== undefined) {
             const room = this.rooms.getBySlug(args.roomName);
             args.roomName = dojo.string.substitute('<span class="ss-room-name" data-room="${roomSlug}" style="color: ${roomColor}">${roomName}</span>', {
-              roomName: room.name,
+              roomName: _(room.name),
               roomColor: room.color,
               roomSlug: room.slug
             });
@@ -1525,7 +1497,7 @@ define(['dojo', 'dojo/_base/declare', 'ebg/core/gamegui', 'ebg/counter', 'ebg/st
               const str = args[argName].map(roomName => {
                 const room = this.rooms.getBySlug(roomName);
                 return dojo.string.substitute('<span class="ss-room-name" data-room="${roomSlug}" style="color: ${roomColor}">${roomName}</span>', {
-                  roomName: room.name,
+                  roomName: _(room.name),
                   roomColor: room.color,
                   roomSlug: room.slug
                 });
@@ -1617,9 +1589,9 @@ class SSRoom {
     this.gameObject = gameObject;
     this.id = data.id;
     this.slug = data.slug;
-    this.name = data.name;
+    this.name = _(data.name);
     this.color = data.color;
-    this.description = data.description;
+    this.description = _(data.description);
     this.position = data.position;
     this.assertEl();
     this.setDamage(data.damage);
@@ -1838,7 +1810,7 @@ class SSPlayers {
 }
 
 class SSPlayer {
-  constructor(gameObject, id, name, color, order, position, actionsTokens) {
+  constructor(gameObject, id, name, color, order, position, actionsTokens, overlapPref) {
     _defineProperty(this, "gameObject", null);
 
     _defineProperty(this, "id", null);
@@ -1874,6 +1846,7 @@ class SSPlayer {
     this.name = name;
     this.color = color;
     this.order = order;
+    this.overlapPref = overlapPref;
     this.assertBoardEl();
     this.assertMeepleEl();
     this.createStock();
@@ -1945,7 +1918,7 @@ class SSPlayer {
       id: "ss-player-meeple--id-" + this.id,
       class: "ss-player-meeple ss-player-meeple--order-" + this.order + " ss-player-meeple--id-" + this.id
     }, roomsWrapperEl);
-    this.gameObject.addTooltipHtml(meepleEl.id, _('Player') + this.name, 250);
+    this.gameObject.addTooltipHtml(meepleEl.id, '<span style="font-weight: bold; color:#' + this.color + '">' + this.name + '</span>', 250);
     this.meepleEl = meepleEl;
   }
 
@@ -1953,7 +1926,7 @@ class SSPlayer {
     this.stock = new ebg.stock();
     this.stock = this.gameObject.createResourceStock(this.handDeckEl);
     this.stock.setSelectionMode(0);
-    this.stock.setOverlap(30, 0);
+    if (this.overlapPref == 1) this.stock.setOverlap(30, 0);
     this.gameObject.resourceTypes.forEach((type, index) => {
       this.stock.addItemType(type.id, index, g_gamethemeurl + 'img/resources.jpg', index);
     });

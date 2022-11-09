@@ -63,8 +63,8 @@ $machinestates = [
 
 	ST_PLAYER_TURN => [
 		'name' => 'playerTurn',
-		'description' => clienttranslate('${actplayer} must choose an action'),
-		'descriptionmyturn' => clienttranslate('${you} must choose an action'),
+		'description' => clienttranslate('${actplayer} must choose an action (${actions} + ${tokens} left)'),
+		'descriptionmyturn' => clienttranslate('${you} must choose an action (${actions} + ${tokens} left)'),
 		'type' => 'activeplayer',
 		'args' => 'argPlayerTurn',
 		'possibleactions' => ['choose', 'useToken', 'restartTurn'],
@@ -296,9 +296,10 @@ $machinestates = [
 
 	ST_PLAYER_ASK_ACTION_TOKENS_PLAY => [
 		'name' => 'playerAskActionTokensPlay',
-		'description' => clienttranslate('End of turn: ${actplayer} can use their action tokens'),
-		'descriptionmyturn' => clienttranslate('End of turn: ${you} can use you action tokens'),
+		'description' => clienttranslate('End of turn: ${actplayer} can use their action tokens (${tokens} left)'),
+		'descriptionmyturn' => clienttranslate('End of turn: ${you} can use you action tokens (${tokens} left)'),
 		'type' => 'activeplayer',
+        'args' => 'argPlayerAskActionTokensPlay',
 		'possibleactions' => ['useToken', 'dontUseToken', 'restartTurn'],
 		'transitions' => [
 			'transActionDone' => ST_PLAYER_ACTION_DONE,

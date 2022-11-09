@@ -70,10 +70,13 @@ $gameinfos = [
 	'losers_not_ranked' => false,
 
 	// Game is "beta". A game MUST set is_beta=1 when published on BGA for the first time, and must remains like this until all bugs are fixed.
-	'is_beta' => 1,
+	'is_beta' => 0,
 
 	// Is this game cooperative (all players wins together or loose together)
 	'is_coop' => 1,
+
+/*
+	// Turning this off as artificial ELO mode is not good enough to be used
 
 	// ELO points equivalence based on difficulty.
 	// Ratios were defined as :
@@ -135,6 +138,7 @@ $gameinfos = [
 			['players_nbr' => 4, 'options' => [100 => 5, 101 => 1], 'elo' => [0 => 1000, 1 => 2340]],
 		],
 	],
+*/
 
 	// Complexity of the game, from 0 (extremely simple) to 5 (extremely complex)
 	'complexity' => 2,
@@ -195,6 +199,11 @@ $gameinfos = [
 	//  IMPORTANT: this list should be ORDERED, with the most important tag first.
 	//  IMPORTANT: it is mandatory that the FIRST tag is 1, 2, 3 and 4 (= game category)
 	'tags' => [2, 12, 101, 204],
+
+    'custom_buy_button' => [
+        'url' => 'https://www.drandagames.co.uk/shop',
+        'label' => "Dranda Games",
+    ],
 
 	// Allow setting an undo point - to allow players to restart their turn
 	'db_undo_support' => true,

@@ -45,6 +45,9 @@ class SolarStorm extends Table {
 			// Player has picked action token this turn
 			'hasPickedActionToken' => 18,
 
+            // Player has loaded the saved state
+            'loadedTurn' => 19,
+
 			// Options
 			// Game difficulty (number of universal cards)
 			'gameDifficulty' => 100,
@@ -533,7 +536,9 @@ class SolarStorm extends Table {
 			case 'energy-core':
 				$message = clienttranslate('End of game ! All players win, congratulations !.');
 				$victory = true;
-				$sql = 'UPDATE player SET player_score = 1';
+                $playerCount = self::getUniqueValueFromDB("SELECT count(*) FROM player");
+                $score = max(1, ($playerCount - 1 + self::getGameStateValue('gameDifficulty')) * (self::getGameStateValue('hideResourcesLeft') ? 0.5 : 1));
+				$sql = "UPDATE player SET player_score = $score";
 				self::DbQuery($sql);
 				break;
 		}
@@ -617,7 +622,7 @@ class SolarStorm extends Table {
 			$damage = $room->getDamage();
 			if (!$room->isDiverted() && !$damage[$resIndex]) {
 				throw new BgaUserException(
-					sprintf(self::_('This room cannot be repaired with resource %s'), $resourceInfo['nametr'])
+					sprintf(self::_('This room cannot be repaired with resource %s'), self::_($resourceInfo['nametr']))
 				);
 			}
 
@@ -630,7 +635,7 @@ class SolarStorm extends Table {
 			return;
 		}
 		throw new BgaUserException(
-			sprintf(self::_('Cannot repair this room with the resource %s'), $resourceInfo['nametr'])
+			sprintf(self::_('Cannot repair this room with the resource %s'), self::_($resourceInfo['nametr']))
 		);
 	}
 
@@ -663,7 +668,7 @@ class SolarStorm extends Table {
 			}
 			if (!$card) {
 				throw new BgaUserException(
-					sprintf(self::_('This room needs a resource %s to be diverted'), $resourceInfo['nametr'])
+					sprintf(self::_('This room needs a resource %s to be diverted'), self::_($resourceInfo['nametr']))
 				);
 			}
 			unset($cards[$card['id']]);
@@ -777,7 +782,10 @@ class SolarStorm extends Table {
 						break;
 					case 'cargo-hold':
 						self::setGameStateValue('canRestartTurn', 0);
-						$this->resourceCards->pickCardsForLocation(5, 'deck', 'reorder');
+                        $reorderCards = $this->resourceCards->pickCardsForLocation(5, 'deck', 'reorder');
+                        if (count($reorderCards) <= 0) {
+                            throw new BgaUserException(self::_('Not enough cards left'));
+                        }
 						$this->gamestate->nextState('transPlayerRoomCargoHold');
 						break;
 					case 'mess-hall':
@@ -807,7 +815,10 @@ class SolarStorm extends Table {
 						break;
 					case 'bridge':
 						self::setGameStateValue('canRestartTurn', 0);
-						$this->damageCards->pickCardsForLocation(3, 'deck', 'reorder');
+                        $reorderCards = $this->damageCards->pickCardsForLocation(3, 'deck', 'reorder');
+                        if (count($reorderCards) <= 1) {
+                            throw new BgaUserException(self::_('Not enough cards left'));
+                        }
 						$this->gamestate->nextState('transPlayerRoomBridge');
 						break;
 					case 'energy-core':
@@ -816,7 +827,7 @@ class SolarStorm extends Table {
 						}
 						$this->notifyAllPlayers(
 							'message',
-							'🎉 ' . clienttranslate('${player_name} activates the Energy Core !'),
+							clienttranslate('🎉 ${player_name} activates the Energy Core !'),
 							$player->getNotificationArgs()
 						);
 						$this->triggerEndOfGame('energy-core');
@@ -845,7 +856,7 @@ class SolarStorm extends Table {
 		// Check position is valid
 		if (!in_array($position, $currentRoom->getPossibleDestinations())) {
 			throw new BgaUserException(
-				sprintf(self::_('You cannot move from %s to %s'), $currentRoom->getName(), $room->getName())
+				sprintf(self::_('You cannot move from %s to %s'), self::_($currentRoom->getName()), self::_($room->getName()))
 			);
 		}
 
@@ -876,11 +887,10 @@ class SolarStorm extends Table {
 			$numCardsToPick = 1;
 		}
 
-		$message = clienttranslate('${player_name} scavenges, rolls the die (${die_result})') . ', ';
 		if ($numCardsToPick === 0) {
-			$message .= clienttranslate('and finds nothing !') . ' 😒';
+			$message = clienttranslate('${player_name} scavenges, rolls the die (${die_result}), and finds nothing! 😒');
 		} else {
-			$message .= clienttranslate('and finds ${num} resource card(s) !');
+			$message = clienttranslate('${player_name} scavenges, rolls the die (${die_result}), and finds ${num} resource card(s)!');
 		}
 
 		$this->notifyAllPlayers(
@@ -1364,13 +1374,18 @@ class SolarStorm extends Table {
 		$player = $this->ssPlayers->getActive();
 		$cardIds = array_reverse($cardIds);
 		$roomsSlugs = [];
+        $count = 0;
 		foreach ($cardIds as $cardId) {
 			$card = $this->damageCards->getCard($cardId);
+            if ($count && $card['type'] == 'hull') {
+                throw new BgaVisibleSystemException('Hull breach must be the last damage card'); // NOI18N
+            }
 			if ($card['location'] !== 'reorder') {
 				throw new BgaVisibleSystemException('Card not in reorder deck'); // NOI18N
 			}
 			$this->damageCards->insertCardOnExtremePosition($card['id'], 'deck', true);
-			$roomsSlugs[] = $this->damageCardsInfos[$card['type']];
+			if ($card['type'] != 'hull') $roomsSlugs[] = $this->damageCardsInfos[$card['type']];
+            $count++;
 		}
 		if ($this->damageCards->countCardInLocation('reorder') != 0) {
 			throw new BgaVisibleSystemException('Reorder deck not empty'); // NOI18N
@@ -1387,18 +1402,18 @@ class SolarStorm extends Table {
 		$roomsSlugs = array_reverse($roomsSlugs);
 		foreach ($roomsSlugs as $index => $roomsSlug) {
 			$indexStr = $index > 0 ? $index + 1 : '';
-			$messageStrings[] = "\${roomNames$indexStr}";
+			$messageStrings[] = '${roomNames'.$indexStr.'}';
+            $notifData["i18n"][] = "roomNames".$indexStr;
 			$notifData["roomNames$indexStr"] = $roomsSlug;
 		}
-		$messageString = join(', ' . clienttranslate('then') . ' ', $messageStrings);
+		$messageString = implode(' / ', $messageStrings);
 		$this->notifyAllPlayers(
 			'message',
-			clienttranslate('Next damages cards will be : ') . $messageString,
+			clienttranslate('Next damage cards will be: ${damage_cards}'),
 			[
 				'num_damages' => count($cardIds),
-			] +
-				$notifData +
-				$player->getNotificationArgs()
+                'damage_cards' => ['log' => $messageString, 'args' => $notifData],
+			] + $player->getNotificationArgs()
 		);
 
 		$this->gamestate->nextState('transActionDone');
@@ -1491,6 +1506,7 @@ class SolarStorm extends Table {
 			'canRestartTurn' => (bool) self::getGameStateValue('canRestartTurn'),
 			'canUseActionTokens' => !self::getGameStateValue('hasPickedActionToken'),
 			'actions' => $player->getActions(),
+            'tokens' => $player->getActionsTokens(),
 			'possibleActions' => $this->getPossibleActions(),
 		];
 	}
@@ -1526,6 +1542,13 @@ class SolarStorm extends Table {
 			'possibleSources' => $this->whereDoesPlayerCanPickResourceFrom(),
 		];
 	}
+
+    public function argPlayerAskActionTokensPlay(): array {
+        $player = $this->ssPlayers->getActive();
+        return [
+            'tokens' => $player->getActionsTokens(),
+        ];
+    }
 
 	public function argPlayerRoomCargoHold(): array {
 		$nextCards = $this->resourceCards->getCardsInLocation('reorder');
@@ -1589,31 +1612,33 @@ class SolarStorm extends Table {
 		self::setGameStateValue('dontWannaUseActionsTokens', 0);
 
 		// Remove protection tokens from this player
-		$updatedRooms = [];
-		foreach ($this->rooms->getRooms() as $room) {
-			$protection = $room->getProtection();
-			if (in_array($player->getId(), $protection)) {
-				$room->setProtection(
-					array_values(
-						array_filter($protection, function ($p) use ($player) {
-							return $p !== $player->getId();
-						})
-					)
-				);
-				$room->save();
-				$updatedRooms[] = $room->toArray();
-			}
-		}
-		if (!empty($updatedRooms)) {
-			$this->notifyAllPlayers(
-				'updateRooms',
-				clienttranslate('Protection tokens from ${player_name} are removed.'),
-				[
-					'rooms' => $updatedRooms,
-				] + $player->getNotificationArgs()
-			);
-		}
-
+        if (!self::getGameStateValue('loadedTurn')) {
+            $updatedRooms = [];
+            foreach ($this->rooms->getRooms() as $room) {
+                $protection = $room->getProtection();
+                if (in_array($player->getId(), $protection)) {
+                    $room->setProtection(
+                        array_values(
+                            array_filter($protection, function ($p) use ($player) {
+                                return $p !== $player->getId();
+                            })
+                        )
+                    );
+                    $room->save();
+                    $updatedRooms[] = $room->toArray();
+                }
+            }
+            if (!empty($updatedRooms)) {
+                $this->notifyAllPlayers(
+                    'updateRooms',
+                    clienttranslate('Protection tokens from ${player_name} are removed.'),
+                    [
+                        'rooms' => $updatedRooms,
+                    ] + $player->getNotificationArgs()
+                );
+            }
+        }
+        self::setGameStateValue('loadedTurn', 0);
 		$this->saveCurrentState();
 
 		self::setGameStateValue('canRestartTurn', 1);
@@ -1734,6 +1759,7 @@ class SolarStorm extends Table {
 	public function stPlayerRestartTurn() {
 		// TODO check
 		$this->loadCurrentState();
+        self::setGameStateValue('loadedTurn', 1);
 		$this->gamestate->nextState('transPlayerStartOfTurn');
 	}
 

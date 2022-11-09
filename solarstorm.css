@@ -355,7 +355,7 @@
 }
 .ss-resource-card.stockitem_selected {
 	border: none !important;
-	outline: 1px solid #2565e8;
+	outline: 4px solid red;
 	filter: drop-shadow(3px 3px 6px rgba(0, 0, 255, 0.7)) drop-shadow(-3px -3px 6px rgba(0, 0, 255, 0.7));
 }
 
@@ -432,7 +432,7 @@
 	justify-content: center;
 }
 .ss-resource-deck__deck.ss-highlight {
-	outline: 2px solid blue;
+	outline: 3px solid blue;
 	box-shadow: rgba(0, 0, 255, 0.7) 4px 4px 6px;
 	cursor: pointer;
 }
@@ -453,7 +453,7 @@
 }
 
 .ss-resource-deck__table.ss-highlight .ss-resource-card {
-	outline: 2px solid blue;
+	outline: 3px solid blue;
 	box-shadow: rgba(0, 0, 255, 0.7) 4px 4px 6px;
 }
 
