@@ -541,7 +541,7 @@ class SolarStorm extends Table {
 				$message = clienttranslate('End of game ! All players win, congratulations !.');
 				$victory = true;
                 $playerCount = self::getUniqueValueFromDB("SELECT count(*) FROM player");
-                $score = max(1, ($playerCount - 1 + self::getGameStateValue('gameDifficulty')) * (self::getGameStateValue('hideResourcesLeft') ? 0.5 : 1));
+                $score = max(1, ($playerCount - 1 + self::getGameStateValue('gameDifficulty')) * (!self::getGameStateValue('hideResourcesLeft') ? 0.5 : 1));
 				$sql = "UPDATE player SET player_score = $score";
 				self::DbQuery($sql);
 				break;
