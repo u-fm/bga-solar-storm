@@ -1025,6 +1025,7 @@ class SolarStorm extends Table {
 	public function actionDiscardResources(array $cardIds): void {
 		self::checkAction('discardResources');
 		$player = $this->ssPlayers->getActive();
+		if (count($cardIds) != count(array_unique($cardIds))) throw new BgaVisibleSystemException('Card not in your hand'); // NOI18N
 
 		$cards = [];
 		foreach ($cardIds as $cardId) {
@@ -1266,6 +1267,7 @@ class SolarStorm extends Table {
 			self::checkAction('selectResourcesForDivert');
 		}
 		$player = $this->ssPlayers->getActive();
+		if (count($cardIds) != count(array_unique($cardIds))) throw new BgaVisibleSystemException('Card not in your hand'); // NOI18N
 
 		$cards = [];
 		foreach ($cardIds as $cardId) {
@@ -1339,6 +1341,7 @@ class SolarStorm extends Table {
 	public function actionPutBackResourceCardsInDeck(array $cardIds): void {
 		self::checkAction('putBackResourceCardsInDeck');
 		$player = $this->ssPlayers->getActive();
+		if (count($cardIds) != count(array_unique($cardIds))) throw new BgaVisibleSystemException('Card not in reorder deck'); // NOI18N
 		$cardIds = array_reverse($cardIds);
 		$reorderedCards = [];
 		foreach ($cardIds as $cardId) {
@@ -1376,6 +1379,7 @@ class SolarStorm extends Table {
 	public function actionPutBackDamageCardsInDeck(array $cardIds): void {
 		self::checkAction('putBackDamageCardsInDeck');
 		$player = $this->ssPlayers->getActive();
+		if (count($cardIds) != count(array_unique($cardIds))) throw new BgaVisibleSystemException('Card not in reorder deck'); // NOI18N
 		$cardIds = array_reverse($cardIds);
 		$roomsSlugs = [];
         $count = 0;
